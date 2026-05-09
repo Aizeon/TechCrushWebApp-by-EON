@@ -30,6 +30,9 @@ jobs:
 
       - name: Trigger Amplify deployment
         run: |
+          echo "App ID: ${{ env.AMPLIFY_APP_ID }}"
+          echo "Region: ${{ env.AWS_REGION }}"
+          aws amplify list-apps --region ${{ env.AWS_REGION }}
           aws amplify start-job \
             --app-id ${{ env.AMPLIFY_APP_ID }} \
             --branch-name main \
