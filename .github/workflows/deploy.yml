@@ -10,6 +10,7 @@ permissions:
 
 env:
   AWS_REGION: eu-west-2
+  AMPLIFY_APP_ID: ${{ secrets.AMPLIFY_APP_ID }}
 
 jobs:
    deploy:
@@ -29,7 +30,7 @@ jobs:
       - name: Trigger Amplify deployment
         run: |
           aws amplify start-job \
-            --app-id ${{ secrets.AMPLIFY_APP_ID }} \
+            --app-id ${{ env.AMPLIFY_APP_ID }} \
             --branch-name main \
             --job-type RELEASE
 
