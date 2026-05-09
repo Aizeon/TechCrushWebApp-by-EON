@@ -3,7 +3,7 @@ name: Deploy to AWS Amplify
 on:
   push:
     branches:
-      - main  
+      - main
 
 permissions:
   contents: read
@@ -14,9 +14,9 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-   deploy:
+  deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -26,13 +26,27 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }} 
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Stop any pending jobs
+        run: |
+          JOB_ID=$(aws amplify list-jobs \
+            --app-id ${{ env.AMPLIFY_APP_ID }} \
+            --branch-name main \
+            --query 'jobSummaries[?status==`PENDING` || status==`RUNNING`].jobId | [0]' \
+            --output text)
+          if [ "$JOB_ID" != "None" ] && [ -n "$JOB_ID" ]; then
+            echo "Stopping job: $JOB_ID"
+            aws amplify stop-job \
+              --app-id ${{ env.AMPLIFY_APP_ID }} \
+              --branch-name main \
+              --job-id $JOB_ID
+          else
+            echo "No pending jobs found"
+          fi
 
       - name: Trigger Amplify deployment
         run: |
-          echo "App ID: ${{ env.AMPLIFY_APP_ID }}"
-          echo "Region: ${{ env.AWS_REGION }}"
-          aws amplify list-apps --region ${{ env.AWS_REGION }}
           aws amplify start-job \
             --app-id ${{ env.AMPLIFY_APP_ID }} \
             --branch-name main \
